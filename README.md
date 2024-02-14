@@ -13,3 +13,6 @@ brew install qemu
 
 ## Reference
 https://zenn.dev/chorkaichan/scraps/28567f1358495b
+
+
+https://nomad.office-aship.info/mac-os1/
