@@ -22,11 +22,11 @@ brew install mtools
 ```
 
 ## Reference
-https://zenn.dev/chorkaichan/scraps/28567f1358495b
+[M1 Macで「30日でできる！OS自作入門」に取り組む](https://zenn.dev/chorkaichan/scraps/28567f1358495b)
 
 
-https://nomad.office-aship.info/mac-os1/
+[OS自作入門](https://nomad.office-aship.info/category/os%e8%87%aa%e4%bd%9c%e5%85%a5%e9%96%80/)
 
-https://github.com/tatsumack/30nichideosjisaku
+[『30日でできる！ OS自作入門』 for macOS](https://github.com/tatsumack/30nichideosjisaku)
 
-https://qiita.com/noanoa07/items/8828c37c2e286522c7ee
+[『30日でできる！OS自作入門』を macOS Catalina で実行する](https://qiita.com/noanoa07/items/8828c37c2e286522c7ee)
