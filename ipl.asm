@@ -33,9 +33,39 @@ entry:
 		MOV		SS,AX
 		MOV		SP,0x7c00
 		MOV		DS,AX
-		MOV		ES,AX
 
+; ディスクを読む
+
+		MOV		AX,0x0820
+		MOV		ES,AX
+		MOV		CH,0			; シリンダ0
+		MOV		DH,0			; ヘッド0
+		MOV		CL,2			; セクタ2
+
+    MOV   SI,0      ;失敗回数を数えるレジスタ
+retry:
+		MOV		AH,0x02			; AH=0x02 : ディスク読み込み
+		MOV		AL,1			; 1セクタ
+		MOV		BX,0
+		MOV		DL,0x00			; Aドライブ
+		INT		0x13			; ディスクBIOS呼び出し
+    JNC   fin
+    ADD   SI,1
+    CMP   SI,5
+    JAE   error
+    MOV   AH,0x00
+    MOV   DL,0x00
+    INT		0x13			; ドライブのリセット
+		JMP		retry
+
+; 読み終わったけどとりあえずやることないので寝る
+fin:
+		HLT						; 何かあるまでCPUを停止させる
+		JMP		fin				; 無限ループ
+
+error:
 		MOV		SI,msg
+
 putloop:
 		MOV		AL,[SI]
 		ADD		SI,1			; SIに1を足す
@@ -45,9 +75,6 @@ putloop:
 		MOV		BX,15			; カラーコード
 		INT		0x10			; ビデオBIOS呼び出し
 		JMP		putloop
-fin:
-		HLT						; 何かあるまでCPUを停止させる
-		JMP		fin				; 無限ループ
 
 msg:
 		DB		0x0a, 0x0a		; 改行を2つ
@@ -59,10 +86,3 @@ msg:
 
 
 		DB		0x55, 0xaa
-
-; 以下はブートセクタ以外の部分の記述
-
-		DB		0xf0, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00
-		RESB	4600
-		DB		0xf0, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00
-		RESB	1469432
