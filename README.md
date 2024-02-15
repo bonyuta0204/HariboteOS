@@ -16,6 +16,11 @@ brew install qemu
 brew install nasm
 ```
 
+### 3. Install mtools
+```bash
+brew install mtools
+```
+
 ## Reference
 https://zenn.dev/chorkaichan/scraps/28567f1358495b
 
@@ -23,3 +28,5 @@ https://zenn.dev/chorkaichan/scraps/28567f1358495b
 https://nomad.office-aship.info/mac-os1/
 
 https://github.com/tatsumack/30nichideosjisaku
+
+https://qiita.com/noanoa07/items/8828c37c2e286522c7ee
