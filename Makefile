@@ -13,5 +13,5 @@ img:
 
 run:
 	make img
-	qemu-system-i386 -drive file=ipl.bin,format=raw,if=floppy
+	qemu-system-i386 -drive file=haribote.img,format=raw,if=floppy
 
