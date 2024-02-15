@@ -78,6 +78,8 @@ next:
     ADD  CH,1
     CMP  CH,CYLS
     JB   readloop
+    MOV		[0x0ff0],CH		; IPLがどこまで読んだのかをメモ
+		JMP		0xc200  ;読み込んだOSのプログラム
 
 fin:
 		HLT						; 何かあるまでCPUを停止させる
