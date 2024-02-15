@@ -11,6 +11,11 @@ OS development
 brew install qemu
 ```
 
+### 2. Install nasm
+```bash
+brew install nasm
+```
+
 ## Reference
 https://zenn.dev/chorkaichan/scraps/28567f1358495b
 
