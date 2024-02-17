@@ -3,14 +3,8 @@
 
 #include "bootpack.h"
 
-struct MOUSE_DEC {
-  unsigned char buf[3], phase;
-  int x, y, btn;
-};
 extern struct FIFO8 keyfifo;
 extern struct FIFO8 mousefifo;
-void enable_mouse(struct MOUSE_DEC *mdec);
-void init_keyboard(void);
 
 int mouse_decode(struct MOUSE_DEC *mdec, unsigned char data);
 
@@ -97,89 +91,10 @@ void HariMain(void) {
                    15); /* 座標消す */
           putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_FFFFFF,
                         s); /* 座標書く */
-					putblock8_8(binfo->vram, binfo->scrnx, 16, 16, mx, my, mcursor, 16); /* マウス描く */
+          putblock8_8(binfo->vram, binfo->scrnx, 16, 16, mx, my, mcursor,
+                      16); /* マウス描く */
         }
       }
     }
-  }
-}
-
-#define PORT_KEYDAT 0x0060
-#define PORT_KEYSTA 0x0064
-#define PORT_KEYCMD 0x0064
-#define KEYSTA_SEND_NOTREADY 0x02
-#define KEYCMD_WRITE_MODE 0x60
-#define KBC_MODE 0x47
-
-void wait_KBC_sendready(void) {
-  /* キーボードコントローラがデータ送信可能になるのを待つ */
-  for (;;) {
-    if ((io_in8(PORT_KEYSTA) & KEYSTA_SEND_NOTREADY) == 0) {
-      break;
-    }
-  }
-  return;
-}
-
-void init_keyboard(void) {
-  /* キーボードコントローラの初期化 */
-  wait_KBC_sendready();
-  io_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE);
-  wait_KBC_sendready();
-  io_out8(PORT_KEYDAT, KBC_MODE);
-  return;
-}
-
-#define KEYCMD_SENDTO_MOUSE 0xd4
-#define MOUSECMD_ENABLE 0xf4
-
-void enable_mouse(struct MOUSE_DEC *mdec) {
-  /* マウス有効 */
-  wait_KBC_sendready();
-  io_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
-  wait_KBC_sendready();
-  io_out8(PORT_KEYDAT, MOUSECMD_ENABLE);
-  /* うまくいくとACK(0xfa)が送信されてくる */
-  mdec->phase = 1;
-
-  return;
-}
-
-int mouse_decode(struct MOUSE_DEC *mdec, unsigned char data) {
-  switch (mdec->phase) {
-  case 0:
-    if (data == 0xfa) {
-      mdec->phase = 1;
-    };
-    return 0;
-  case 1:
-    if ((data & 0xc8) == 0x08) {
-      /** 正しい1バイト目 */
-      mdec->buf[0] = data;
-      mdec->phase = 2;
-      return 0;
-    } else {
-      return -1;
-    }
-  case 2:
-    mdec->buf[1] = data;
-    mdec->phase = 3;
-    return 0;
-  case 3:
-    mdec->buf[2] = data;
-    mdec->phase = 1;
-
-    mdec->btn = mdec->buf[0] & 0x07;
-    mdec->x = mdec->buf[1];
-    mdec->y = mdec->buf[2];
-    if ((mdec->buf[0] & 0x10) != 0) {
-      mdec->x |= 0xffffff00;
-    }
-    if ((mdec->buf[0] & 0x20) != 0) {
-      mdec->y |= 0xffffff00;
-    }
-    mdec->y = -mdec->y; /* マウスではy方向の符号が画面と反対 */
-
-    return 1;
   }
 }
