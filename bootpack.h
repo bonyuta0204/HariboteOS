@@ -13,15 +13,25 @@ struct BOOTINFO { /* 0x0ff0-0x0fff */
 void io_hlt(void);
 void io_cli(void);
 void io_sti(void);
+void io_stihlt(void);
+
+int io_in8(int port);
+int io_in16(int port);
+int io_in32(int port);
+
 void io_out8(int port, int data);
+void io_out16(int port, int data);
+void io_out32(int port, int data);
+
 int io_load_eflags(void);
 void io_store_eflags(int eflags);
+
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
+
 void asm_inthandler21();
 void asm_inthandler27();
 void asm_inthandler2c();
-
 
 /* graphic.c */
 void init_palette(void);
@@ -75,10 +85,12 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 #define LIMIT_BOTPAK 0x0007ffff
 #define AR_DATA32_RW 0x4092
 #define AR_CODE32_ER 0x409a
-#define AR_INTGATE32	0x008e
-
+#define AR_INTGATE32 0x008e
 
 /* int.c */
+struct KEYBUF {
+  unsigned char data, flag;
+};
 void init_pic(void);
 #define PIC0_ICW1 0x0020
 #define PIC0_OCW2 0x0020
