@@ -21,6 +21,12 @@ brew install nasm
 brew install mtools
 ```
 
+### 4. Install i386-elf-gcc
+```bash
+brew tap nativeos/i386-elf-toolchain
+brew install i386-elf-binutils i386-elf-gcc
+```
+
 ## Reference
 [M1 Macで「30日でできる！OS自作入門」に取り組む](https://zenn.dev/chorkaichan/scraps/28567f1358495b)
 
