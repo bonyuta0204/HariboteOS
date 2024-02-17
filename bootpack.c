@@ -5,6 +5,7 @@
 
 struct MOUSE_DEC {
   unsigned char buf[3], phase;
+  int x, y, btn;
 };
 extern struct FIFO8 keyfifo;
 extern struct FIFO8 mousefifo;
@@ -60,7 +61,17 @@ void HariMain(void) {
         io_sti();
 
         if (mouse_decode(&mdec, i) != 0) {
-          sprintf(s, "%d %d %d", mdec.buf[0], mdec.buf[1], mdec.buf[2]);
+					/* データが3バイト揃ったので表示 */
+					sprintf(s, "[lcr %d %d]", mdec.x, mdec.y);
+					if ((mdec.btn & 0x01) != 0) {
+						s[1] = 'L';
+					}
+					if ((mdec.btn & 0x02) != 0) {
+						s[3] = 'R';
+					}
+					if ((mdec.btn & 0x04) != 0) {
+						s[2] = 'C';
+					}
           boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 32, 16,
                    32 + 8 * 8 - 1, 31);
           putfonts8_asc(binfo->vram, binfo->scrnx, 32, 16, COL8_FFFFFF, s);
@@ -119,9 +130,14 @@ int mouse_decode(struct MOUSE_DEC *mdec, unsigned char data) {
     };
     return 0;
   case 1:
-    mdec->buf[0] = data;
-    mdec->phase = 2;
-    return 0;
+    if ((data & 0xc8) == 0x08) {
+      /** 正しい1バイト目 */
+      mdec->buf[0] = data;
+      mdec->phase = 2;
+      return 0;
+    } else {
+      return -1;
+    }
   case 2:
     mdec->buf[1] = data;
     mdec->phase = 3;
@@ -129,6 +145,18 @@ int mouse_decode(struct MOUSE_DEC *mdec, unsigned char data) {
   case 3:
     mdec->buf[2] = data;
     mdec->phase = 1;
+
+    mdec->btn = mdec->buf[0] & 0x07;
+    mdec->x = mdec->buf[1];
+    mdec->y = mdec->buf[2];
+    if ((mdec->buf[0] & 0x10) != 0) {
+      mdec->x |= 0xffffff00;
+    }
+    if ((mdec->buf[0] & 0x20) != 0) {
+      mdec->y |= 0xffffff00;
+    }
+    mdec->y = -mdec->y; /* マウスではy方向の符号が画面と反対 */
+
     return 1;
   }
 }
