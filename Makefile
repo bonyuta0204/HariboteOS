@@ -1,8 +1,14 @@
 ipl.bin: ipl.asm
 	nasm ipl.asm -o ipl.bin
 
-haribote.sys: haribote.asm
-	nasm haribote.asm -o haribote.sys
+asmhead.bin: asmhead.asm
+	nasm asmhead.asm -o asmhead.bin
+
+bootpack.hrb: bootpack.c hrb.ld
+	i386-elf-gcc -march=i486 -m32 -nostdlib -T hrb.ld bootpack.c -o bootpack.hrb
+
+haribote.sys : asmhead.bin bootpack.hrb
+	cat asmhead.bin bootpack.hrb > haribote.sys
 
 haribote.img: ipl.bin haribote.sys
 	mformat -f 1440 -C -B ipl.bin -i haribote.img ::
