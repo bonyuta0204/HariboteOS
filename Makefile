@@ -1,11 +1,15 @@
 ipl.bin: ipl.asm
-	nasm ipl.asm -o ipl.bin
+	nasm ipl.asm -o ipl.bin -l ipl.lst
 
 asmhead.bin: asmhead.asm
-	nasm asmhead.asm -o asmhead.bin
+	nasm asmhead.asm -o asmhead.bin -l asmhead.lst
 
-bootpack.hrb: bootpack.c hrb.ld
-	i386-elf-gcc -march=i486 -m32 -nostdlib -T hrb.ld bootpack.c -o bootpack.hrb
+naskfunc.o : naskfunc.asm
+	nasm -g -f elf naskfunc.asm -o naskfunc.o -l naskfunc.lst
+
+
+bootpack.hrb: bootpack.c hrb.ld naskfunc.o
+	i386-elf-gcc -march=i486 -m32 -nostdlib -T hrb.ld -g bootpack.c naskfunc.o -o bootpack.hrb
 
 haribote.sys : asmhead.bin bootpack.hrb
 	cat asmhead.bin bootpack.hrb > haribote.sys

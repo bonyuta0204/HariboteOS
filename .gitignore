@@ -2,3 +2,5 @@
 *.hrb
 *.sys
 *.bin
+*.lst
+*.o
