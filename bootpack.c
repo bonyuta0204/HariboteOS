@@ -16,6 +16,7 @@ void init_screen(char *vram, int xsize, int ysize);
 void putfont8(char *vram, int xsize, int x, int y, char c, char *font);
 void putfonts8_asc(char *vram, int xsize, int x, int y, char c,
                    unsigned char *s);
+void sprintf(char *str, char *fmt, ...);
 
 #define COL8_000000 0
 #define COL8_FF0000 1
@@ -50,9 +51,15 @@ void HariMain(void) {
 
   init_screen(binfo->vram, binfo->scrnx, binfo->scrny);
 
+  char s[40];
+
   putfonts8_asc(binfo->vram, binfo->scrnx, 8, 8, COL8_FFFFFF, "ABC 123");
   putfonts8_asc(binfo->vram, binfo->scrnx, 31, 31, COL8_000000, "Haribote OS.");
   putfonts8_asc(binfo->vram, binfo->scrnx, 30, 30, COL8_FFFFFF, "Haribote OS.");
+
+  sprintf(s, "scrnx = %d", binfo->scrnx);
+
+  putfonts8_asc(binfo->vram, binfo->scrnx, 16, 64, COL8_FFFFFF, s);
 
   for (;;) {
     io_hlt();

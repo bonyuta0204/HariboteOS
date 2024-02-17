@@ -19,8 +19,8 @@ hankaku.c: hankaku.txt convHankakuTxt.c
 convHankakuTxt: convHankakuTxt.c
 	gcc convHankakuTxt.c -o convHankakuTxt
 
-bootpack.hrb: bootpack.c hrb.ld naskfunc.o hankaku.c
-	$(GCC) -march=i486 -m32 -nostdlib -T hrb.ld -g bootpack.c naskfunc.o hankaku.c -o bootpack.hrb
+bootpack.hrb: bootpack.c hrb.ld naskfunc.o hankaku.c mysprintf.c
+	$(GCC) -march=i486 -m32 -nostdlib -fno-builtin -T hrb.ld -g bootpack.c naskfunc.o hankaku.c mysprintf.c -o bootpack.hrb
 
 # Main OS program
 haribote.sys : asmhead.bin bootpack.hrb
