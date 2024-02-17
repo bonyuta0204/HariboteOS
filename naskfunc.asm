@@ -7,9 +7,16 @@
 
 
 GLOBAL io_hlt
+GLOBAL write_mem8
 
 [SECTION .text]
 io_hlt:
   HTL
+  RET
+
+write_mem8:
+  MOV ECX,[ESP+4]
+  MOV AL,[ESP+8]
+  MOV [ECX],AL
   RET
 
