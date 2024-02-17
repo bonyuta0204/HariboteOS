@@ -4,4 +4,7 @@
 *.bin
 *.lst
 *.o
+
+convHankakuTxt
+hankaku.c
 .DS_Store
