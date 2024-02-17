@@ -23,8 +23,8 @@ convHankakuTxt: convHankakuTxt.c
 %.o: %.c
 	$(GCC) -march=i486 -m32 -nostdlib -fno-builtin  -c $*.c -o $*.o
 
-bootpack.hrb: bootpack.o hrb.ld naskfunc.o hankaku.o mysprintf.o graphic.o dsctbl.o
-	$(GCC) -march=i486 -m32 -nostdlib -fno-builtin -T hrb.ld -g bootpack.o naskfunc.o hankaku.o mysprintf.o graphic.o dsctbl.o -o bootpack.hrb
+bootpack.hrb: bootpack.o hrb.ld naskfunc.o hankaku.o mysprintf.o graphic.o dsctbl.o int.o
+	$(GCC) -march=i486 -m32 -nostdlib -fno-builtin -T hrb.ld -g bootpack.o naskfunc.o hankaku.o mysprintf.o graphic.o dsctbl.o int.o -o bootpack.hrb
 
 # Main OS program
 haribote.sys : asmhead.bin bootpack.hrb
