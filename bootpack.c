@@ -38,14 +38,24 @@ void HariMain(void) {
 
   for (;;) {
     io_cli();
-    if (fifo8_status(&keyfifo) == 0) {
+    if (fifo8_status(&keyfifo) == 0 + fifo8_status(&mousefifo)) {
       io_stihlt();
     } else {
-      i = fifo8_get(&keyfifo);
-      io_sti();
-      sprintf(s, "%d", i);
-      boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 0, 16, 15, 31);
-      putfonts8_asc(binfo->vram, binfo->scrnx, 0, 16, COL8_FFFFFF, s);
+      if (fifo8_status(&keyfifo) != 0) {
+        /** キーボード入力が存在 */
+        i = fifo8_get(&keyfifo);
+        io_sti();
+        sprintf(s, "%d", i);
+        boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 0, 16, 30, 31);
+        putfonts8_asc(binfo->vram, binfo->scrnx, 0, 16, COL8_FFFFFF, s);
+      } else if (fifo8_status(&mousefifo) != 0) {
+        /** マウス入力が存在 */
+        i = fifo8_get(&mousefifo);
+        io_sti();
+        sprintf(s, "%d", i);
+        boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 32, 16, 60, 31);
+        putfonts8_asc(binfo->vram, binfo->scrnx, 32, 16, COL8_FFFFFF, s);
+      }
     }
   }
 }
