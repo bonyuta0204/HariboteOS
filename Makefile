@@ -30,8 +30,6 @@ haribote.img: ipl.bin haribote.sys
 	mformat -f 1440 -C -B ipl.bin -i haribote.img ::
 	mcopy -i haribote.img haribote.sys ::
 
-
-
 .PHONY: all img run clean
 
 img:
