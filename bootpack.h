@@ -134,7 +134,6 @@ extern struct FIFO8 keyfifo;
 #define KEYCMD_WRITE_MODE 0x60
 #define KBC_MODE 0x47
 
-
 /** mouse.c */
 struct MOUSE_DEC {
   unsigned char buf[3], phase;
@@ -168,3 +167,5 @@ void memman_init(struct MEMMAN *man);
 unsigned int memman_total(struct MEMMAN *man);
 unsigned int memman_alloc(struct MEMMAN *man, unsigned int size);
 int memman_free(struct MEMMAN *man, unsigned int addr, unsigned int size);
+unsigned int memman_alloc_4k(struct MEMMAN *man, unsigned int size);
+int memman_free_4k(struct MEMMAN *man, unsigned int addr, unsigned int size);
