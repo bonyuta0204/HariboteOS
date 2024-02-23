@@ -79,6 +79,9 @@ void sheet_updown(struct SHEET *sht, int height) {
         ctl->sheets[h]->height = h;
       }
       ctl->sheets[height] = sht;
+      /* 新しい下じきの情報に沿って画面を描き直す */
+      sheet_refresh_sub(ctl, sht->vx0, sht->vy0, sht->vx0 + sht->bxsize,
+                        sht->vy0 + sht->bysize, height + 1);
     } else { /* 非表示化 */
       if (ctl->top > old) {
         /* 上になっているものをおろす */
@@ -88,11 +91,10 @@ void sheet_updown(struct SHEET *sht, int height) {
         }
       }
       ctl->top--; /* 表示中の下じきが一つ減るので、一番上の高さが減る */
+      sheet_refresh_sub(ctl, sht->vx0, sht->vy0, sht->vx0 + sht->bxsize,
+                        sht->vy0 + sht->bysize, 0);
     }
 
-    /* 新しい下じきの情報に沿って画面を描き直す */
-    sheet_refresh_sub(ctl, sht->vx0, sht->vy0, sht->vx0 + sht->bxsize,
-                      sht->vy0 + sht->bysize);
   } else if (old < height) { /* 以前よりも高くなる */
     if (old >= 0) {
       /* 間のものを押し下げる */
@@ -112,18 +114,33 @@ void sheet_updown(struct SHEET *sht, int height) {
     }
     /* 新しい下じきの情報に沿って画面を描き直す */
     sheet_refresh_sub(ctl, sht->vx0, sht->vy0, sht->vx0 + sht->bxsize,
-                      sht->vy0 + sht->bysize);
+                      sht->vy0 + sht->bysize, height);
   }
   return;
 }
 
 void sheet_refresh(struct SHEET *sht, int bx0, int by0, int bx1, int by1) {
   sheet_refresh_sub(sht->ctl, sht->vx0 + bx0, sht->vy0 + by0, sht->vx0 + bx1,
-                    sht->vy0 + by1);
+                    sht->vy0 + by1, sht->height);
   return;
 }
 
-void sheet_refresh_sub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1) {
+/**
+ * Refreshes a specific area of the screen by redrawing all sheets from a
+ * specified height. Only the parts of sheets within the specified area and
+ * above the specified height are redrawn.
+ *
+ * @param ctl Pointer to the sheet control structure containing all sheets and
+ * screen info.
+ * @param vx0, vy0 Starting coordinates of the rectangle to refresh, relative to
+ * screen.
+ * @param vx1, vy1 Ending coordinates of the rectangle to refresh, defining a
+ * rectangle area.
+ * @param h0 The starting height from which to refresh sheets, optimizing the
+ * redraw process.
+ */
+void sheet_refresh_sub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1,
+                       int h0) {
   int h, bx, by, vx, vy, bx0, by0, bx1, by1;
   unsigned char *buf, c, *vram = ctl->vram;
 
@@ -137,7 +154,7 @@ void sheet_refresh_sub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1) {
     vy1 = ctl->ysize;
 
   struct SHEET *sht;
-  for (h = 0; h <= ctl->top; h++) {
+  for (h = h0; h <= ctl->top; h++) {
     sht = ctl->sheets[h];
     buf = sht->buf;
 
@@ -181,9 +198,10 @@ void sheet_slide(struct SHEET *sht, int vx0, int vy0) {
   if (sht->height >= 0) { /* もしも表示中なら */
 
     sheet_refresh_sub(ctl, old_vx, old_vy, old_vx + sht->bxsize,
-                      old_vy + sht->bysize);
+                      old_vy + sht->bysize, 0);
 
-    sheet_refresh_sub(ctl, vx0, vy0, vx0 + sht->bxsize, vy0 + sht->bysize);
+    sheet_refresh_sub(ctl, vx0, vy0, vx0 + sht->bxsize, vy0 + sht->bysize,
+                      sht->height);
   }
   return;
 }
