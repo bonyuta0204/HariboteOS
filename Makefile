@@ -4,11 +4,6 @@ GCC=i386-elf-gcc
 all: haribote.img
 
 # Bootloader
-ipl.bin: ipl.asm
-	$(NASM) ipl.asm -o ipl.bin -l ipl.lst
-
-asmhead.bin: asmhead.asm
-	$(NASM) asmhead.asm -o asmhead.bin -l asmhead.lst
 
 naskfunc.o : naskfunc.asm
 	$(NASM) -g -f elf naskfunc.asm -o naskfunc.o -l naskfunc.lst
@@ -19,6 +14,8 @@ hankaku.c: hankaku.txt convHankakuTxt.c
 convHankakuTxt: convHankakuTxt.c
 	gcc convHankakuTxt.c -o convHankakuTxt
 
+%.bin: %.asm
+	$(NASM) $*.asm -o $*.bin -l $*.lst
 
 %.o: %.c
 	$(GCC) -march=i486 -m32 -nostdlib -fno-builtin  -c $*.c -o $*.o
