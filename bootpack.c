@@ -50,12 +50,12 @@ void HariMain(void) {
   init_screen8(buf_back, binfo->scrnx, binfo->scrny);
   init_mouse_cursor8(buf_mouse, 99);
 
-  sheet_slide(shtctl, sht_back, 0, 0);
+  sheet_slide(sht_back, 0, 0);
   mx = (binfo->scrnx - 16) / 2; /* 画面中央になるように座標計算 */
   my = (binfo->scrny - 28 - 16) / 2;
-  sheet_slide(shtctl, sht_mouse, mx, my);
-  sheet_updown(shtctl, sht_back, 0);
-  sheet_updown(shtctl, sht_mouse, 1);
+  sheet_slide(sht_mouse, mx, my);
+  sheet_updown(sht_back, 0);
+  sheet_updown(sht_mouse, 1);
 
   sprintf(s, "(%d, %d)", mx, my);
   putfonts8_asc(buf_back, binfo->scrnx, 0, 0, COL8_FFFFFF, s);
@@ -110,18 +110,18 @@ void HariMain(void) {
           if (my < 0) {
             my = 0;
           }
-          if (mx > binfo->scrnx - 16) {
-            mx = binfo->scrnx - 16;
+          if (mx > binfo->scrnx - 1) {
+            mx = binfo->scrnx - 1;
           }
-          if (my > binfo->scrny - 16) {
-            my = binfo->scrny - 16;
+          if (my > binfo->scrny - 1) {
+            my = binfo->scrny - 1;
           }
           sprintf(s, "(%3d, %3d)", mx, my);
           boxfill8(buf_back, binfo->scrnx, COL8_008484, 0, 0, 79,
                    15); /* 座標消す */
           putfonts8_asc(buf_back, binfo->scrnx, 0, 0, COL8_FFFFFF,
-                        s);                       /* 座標書く */
-          sheet_slide(shtctl, sht_mouse, mx, my); /* sheet_refreshを含む */
+                        s);               /* 座標書く */
+          sheet_slide(sht_mouse, mx, my); /* sheet_refreshを含む */
         }
       }
     }

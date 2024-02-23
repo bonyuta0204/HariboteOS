@@ -176,6 +176,7 @@ int memman_free_4k(struct MEMMAN *man, unsigned int addr, unsigned int size);
 struct SHEET {
   unsigned char *buf;
   int bxsize, bysize, vx0, vy0, col_inv, height, flags;
+  struct SHTCTL *ctl;
 };
 
 struct SHTCTL {
@@ -196,6 +197,6 @@ void sheet_refresh(struct SHTCTL *ctl, struct SHEET *sheet, int bx0, int by0,
                    int bx1, int by1);
 void sheet_refresh_sub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1);
 
-void sheet_slide(struct SHTCTL *ctl, struct SHEET *sht, int vx0, int vy0);
-void sheet_updown(struct SHTCTL *ctl, struct SHEET *sht, int height);
+void sheet_slide(struct SHEET *sht, int vx0, int vy0);
+void sheet_updown(struct SHEET *sht, int height);
 void sheet_free(struct SHTCTL *ctl, struct SHEET *sht);

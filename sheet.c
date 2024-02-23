@@ -21,6 +21,7 @@ struct SHTCTL *shtctl_init(struct MEMMAN *memman, unsigned char *vram,
 
   for (i = 0; i < MAX_SHEETS; i++) {
     ctl->sheets0[i].flags = 0; /* 未使用マーク */
+    ctl->sheets0[i].ctl = ctl;
   }
 
   return ctl;
@@ -56,8 +57,9 @@ void sheet_setbuf(struct SHEET *sht, unsigned char *buf, int xsize, int ysize,
   return;
 }
 
-void sheet_updown(struct SHTCTL *ctl, struct SHEET *sht, int height) {
+void sheet_updown(struct SHEET *sht, int height) {
   int h, old = sht->height; /* 設定前の高さを記憶する */
+  struct SHTCTL *ctl = sht->ctl;
 
   /* 指定が低すぎや高すぎだったら、修正する */
   if (height > ctl->top + 1) {
@@ -126,6 +128,15 @@ void sheet_refresh_sub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1) {
   int h, bx, by, vx, vy, bx0, by0, bx1, by1;
   unsigned char *buf, c, *vram = ctl->vram;
 
+  if (vx0 < 0)
+    vx0 = 0;
+  if (vy0 < 0)
+    vy0 = 0;
+  if (vx1 > ctl->xsize)
+    vx1 = ctl->xsize;
+  if (vy1 > ctl->ysize)
+    vy1 = ctl->ysize;
+
   struct SHEET *sht;
   for (h = 0; h <= ctl->top; h++) {
     sht = ctl->sheets[h];
@@ -163,7 +174,8 @@ void sheet_refresh_sub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1) {
   return;
 }
 
-void sheet_slide(struct SHTCTL *ctl, struct SHEET *sht, int vx0, int vy0) {
+void sheet_slide(struct SHEET *sht, int vx0, int vy0) {
+  struct SHTCTL *ctl = sht->ctl;
   int old_vx = sht->vx0, old_vy = sht->vy0;
   sht->vx0 = vx0;
   sht->vy0 = vy0;
@@ -179,7 +191,7 @@ void sheet_slide(struct SHTCTL *ctl, struct SHEET *sht, int vx0, int vy0) {
 
 void sheet_free(struct SHTCTL *ctl, struct SHEET *sht) {
   if (sht->height >= 0) {
-    sheet_updown(ctl, sht, -1); /* 表示中ならまず非表示にする */
+    sheet_updown(sht, -1); /* 表示中ならまず非表示にする */
   }
   sht->flags = 0; /* 未使用マーク */
   return;
