@@ -11,6 +11,7 @@ void HariMain(void) {
   int mx, my, i;
   struct MOUSE_DEC mdec;
   unsigned int memtotal;
+  unsigned int count = 0;
   struct MEMMAN *memman = (struct MEMMAN *)MEMMAN_ADDR;
 
   /** Sheet Rendering */
@@ -55,7 +56,7 @@ void HariMain(void) {
 
   init_screen8(buf_back, binfo->scrnx, binfo->scrny);
   init_mouse_cursor8(buf_mouse, 99);
-  make_window8(buf_win, 160, 68, "window");
+  make_window8(buf_win, 160, 52, "counter");
 
   sheet_slide(sht_back, 0, 0);
   mx = (binfo->scrnx - 16) / 2; /* 画面中央になるように座標計算 */
@@ -76,9 +77,16 @@ void HariMain(void) {
   sheet_refresh(sht_back, 0, 0, sht_back->bxsize, sht_back->bysize);
 
   for (;;) {
+    count++;
+    sprintf(s, "%d", count);
+    boxfill8(buf_win, 160, COL8_C6C6C6, 40, 28, 119, 43);
+    putfonts8_asc(buf_win, 160, 40, 28, COL8_000000, s);
+    sheet_refresh(sht_win, 40, 28, 120, 44);
+
     io_cli();
     if (fifo8_status(&keyfifo) == 0 + fifo8_status(&mousefifo)) {
-      io_stihlt();
+      // io_stihlt();
+      io_sti();
     } else {
       if (fifo8_status(&keyfifo) != 0) {
         /** キーボード入力が存在 */
