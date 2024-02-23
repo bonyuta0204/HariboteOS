@@ -117,9 +117,8 @@ void sheet_updown(struct SHEET *sht, int height) {
   return;
 }
 
-void sheet_refresh(struct SHTCTL *ctl, struct SHEET *sht, int bx0, int by0,
-                   int bx1, int by1) {
-  sheet_refresh_sub(ctl, sht->vx0 + bx0, sht->vy0 + by0, sht->vx0 + bx1,
+void sheet_refresh(struct SHEET *sht, int bx0, int by0, int bx1, int by1) {
+  sheet_refresh_sub(sht->ctl, sht->vx0 + bx0, sht->vy0 + by0, sht->vx0 + bx1,
                     sht->vy0 + by1);
   return;
 }

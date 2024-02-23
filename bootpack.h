@@ -193,7 +193,7 @@ struct SHEET *sheet_alloc(struct SHTCTL *ctl);
 void sheet_setbuf(struct SHEET *sht, unsigned char *buf, int xsize, int ysize,
                   int col_inv);
 
-void sheet_refresh(struct SHTCTL *ctl, struct SHEET *sheet, int bx0, int by0,
+void sheet_refresh(struct SHEET *sheet, int bx0, int by0,
                    int bx1, int by1);
 void sheet_refresh_sub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1);
 
