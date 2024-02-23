@@ -64,7 +64,7 @@ void HariMain(void) {
   sprintf(s, "memory %dKB   free : %dKB", memtotal / (1024),
           memman_total(memman) / 1024);
   putfonts8_asc(buf_back, binfo->scrnx, 0, 32, COL8_FFFFFF, s);
-  sheet_refresh(shtctl);
+  sheet_refresh(shtctl, sht_back, 0, 0, sht_back->bxsize, sht_back->bysize);
 
   for (;;) {
     io_cli();
@@ -78,7 +78,7 @@ void HariMain(void) {
         sprintf(s, "%d", i);
         boxfill8(buf_back, binfo->scrnx, COL8_008484, 0, 16, 30, 31);
         putfonts8_asc(buf_back, binfo->scrnx, 0, 16, COL8_FFFFFF, s);
-        sheet_refresh(shtctl);
+        sheet_refresh(shtctl, sht_back, 0, 16, 30, 31);
       } else if (fifo8_status(&mousefifo) != 0) {
         /** マウス入力が存在 */
         i = fifo8_get(&mousefifo);
@@ -99,6 +99,8 @@ void HariMain(void) {
           boxfill8(buf_back, binfo->scrnx, COL8_008484, 32, 16, 32 + 15 * 8 - 1,
                    31);
           putfonts8_asc(buf_back, binfo->scrnx, 32, 16, COL8_FFFFFF, s);
+
+          sheet_refresh(shtctl, sht_back, 32, 16, 32 + 15 * 8, 32);
           /* マウスカーソルの移動 */
           mx += mdec.x;
           my += mdec.y;
