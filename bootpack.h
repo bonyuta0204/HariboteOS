@@ -199,4 +199,4 @@ void sheet_refresh_sub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1);
 
 void sheet_slide(struct SHEET *sht, int vx0, int vy0);
 void sheet_updown(struct SHEET *sht, int height);
-void sheet_free(struct SHTCTL *ctl, struct SHEET *sht);
+void sheet_free(struct SHEET *sht);

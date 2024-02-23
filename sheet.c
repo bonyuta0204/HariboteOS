@@ -189,7 +189,7 @@ void sheet_slide(struct SHEET *sht, int vx0, int vy0) {
   return;
 }
 
-void sheet_free(struct SHTCTL *ctl, struct SHEET *sht) {
+void sheet_free(struct SHEET *sht) {
   if (sht->height >= 0) {
     sheet_updown(sht, -1); /* 表示中ならまず非表示にする */
   }
