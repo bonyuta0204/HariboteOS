@@ -205,9 +205,14 @@ void sheet_refreshmap(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1,
 void sheet_free(struct SHEET *sht);
 
 /** timer.c */
-
-void init_pit(void);
 struct TIMERCTL {
   unsigned int count;
+  unsigned int timeout;
+  struct FIFO8 *fifo;
+  unsigned char data;
 };
 extern struct TIMERCTL timerctl;
+extern struct FIFO8 timerfifo;
+
+void init_pit(void);
+void settimer(unsigned int timeout, struct FIFO8 *fifo, unsigned char data);
