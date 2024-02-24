@@ -32,6 +32,7 @@ void load_idtr(int limit, int addr);
 int load_cr0(void);
 void store_cr0(int cr0);
 
+void asm_inthandler20();
 void asm_inthandler21();
 void asm_inthandler27();
 void asm_inthandler2c();
@@ -202,3 +203,11 @@ void sheet_updown(struct SHEET *sht, int height);
 void sheet_refreshmap(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1,
                       int h0);
 void sheet_free(struct SHEET *sht);
+
+/** timer.c */
+
+void init_pit(void);
+struct TIMERCTL {
+  unsigned int count;
+};
+extern struct TIMERCTL timerctl;
