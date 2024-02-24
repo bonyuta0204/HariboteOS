@@ -38,6 +38,12 @@ void asm_inthandler27();
 void asm_inthandler2c();
 unsigned int memtest_sub(unsigned int start, unsigned int end);
 
+struct SHEET {
+  unsigned char *buf;
+  int bxsize, bysize, vx0, vy0, col_inv, height, flags;
+  struct SHTCTL *ctl;
+};
+
 /* graphic.c */
 void init_palette(void);
 void set_palette(int start, int end, unsigned char *rgb);
@@ -50,6 +56,8 @@ void putfonts8_asc(char *vram, int xsize, int x, int y, char c,
 void init_mouse_cursor8(char *mouse, char bc);
 void putblock8_8(char *vram, int vxsize, int pxsize, int pysize, int px0,
                  int py0, char *buf, int bxsize);
+void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c, int b, char *s,
+                       int l);
 #define COL8_000000 0
 #define COL8_FF0000 1
 #define COL8_00FF00 2
@@ -173,12 +181,6 @@ int memman_free_4k(struct MEMMAN *man, unsigned int addr, unsigned int size);
 
 /* sheet.c */
 #define MAX_SHEETS 256
-
-struct SHEET {
-  unsigned char *buf;
-  int bxsize, bysize, vx0, vy0, col_inv, height, flags;
-  struct SHTCTL *ctl;
-};
 
 struct SHTCTL {
   unsigned char *vram, *map;

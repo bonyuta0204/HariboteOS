@@ -33,7 +33,6 @@ void HariMain(void) {
   fifo8_init(&keyfifo, 32, keybuf);
   fifo8_init(&mousefifo, 128, mousebuf);
 
-
   /** Enable PIC interrupt */
   io_out8(PIC0_IMR, 0xf8); /* PITとPIC1とキーボードを許可(11111000) */
   io_out8(PIC1_IMR, 0xef); /* マウスを許可(11101111) */
@@ -76,12 +75,12 @@ void HariMain(void) {
   sheet_updown(sht_mouse, 2);
 
   sprintf(s, "(%d, %d)", mx, my);
-  putfonts8_asc(buf_back, binfo->scrnx, 0, 0, COL8_FFFFFF, s);
+  putfonts8_asc_sht(sht_back, 0, 0, COL8_FFFFFF, COL8_008484, s, 10);
 
   i = memtest(0x00400000, 0xbfffffff) / (1024 * 1024);
   sprintf(s, "memory %dKB   free : %dKB", memtotal / (1024),
           memman_total(memman) / 1024);
-  putfonts8_asc(buf_back, binfo->scrnx, 0, 16, COL8_FFFFFF, s);
+  putfonts8_asc_sht(sht_back, 0, 16, COL8_FFFFFF, COL8_008484, s, 10);
   sheet_refresh(sht_back, 0, 0, sht_back->bxsize, sht_back->bysize);
 
   /** Initialize Timer */
@@ -90,9 +89,9 @@ void HariMain(void) {
   timer_init(timer, &timerfifo, 1);
   timer_settime(timer, 1000);
 
-  sprintf(s,"timer data: %d",timer->data);
-  putfonts8_asc(buf_back, binfo->scrnx, 0, 32, COL8_FFFFFF, s);
-  sheet_refresh(sht_back, 0, 0, sht_back->bxsize, sht_back->bysize);
+  sprintf(s, "timer data: %d", timer->data);
+
+  putfonts8_asc_sht(sht_back, 0, 32, COL8_FFFFFF, COL8_008484, s, 10);
 
   fifo8_init(&timerfifo2, 8, timerbuf2);
   timer2 = timer_alloc();
@@ -106,9 +105,8 @@ void HariMain(void) {
 
   for (;;) {
     sprintf(s, "%d", timerctl.count);
-    boxfill8(buf_win, 160, COL8_C6C6C6, 40, 28, 119, 43);
-    putfonts8_asc(buf_win, 160, 40, 28, COL8_000000, s);
-    sheet_refresh(sht_win, 40, 28, 120, 44);
+
+    putfonts8_asc_sht(sht_win, 40, 28, COL8_000000, COL8_C6C6C6, s, 10);
 
     io_cli();
     if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo) +
@@ -123,9 +121,7 @@ void HariMain(void) {
         i = fifo8_get(&keyfifo);
         io_sti();
         sprintf(s, "%d", i);
-        boxfill8(buf_back, binfo->scrnx, COL8_008484, 0, 16, 30, 31);
-        putfonts8_asc(buf_back, binfo->scrnx, 0, 16, COL8_FFFFFF, s);
-        sheet_refresh(sht_back, 0, 16, 30, 31);
+        putfonts8_asc_sht(sht_back, 0, 16, COL8_FFFFFF, COL8_008484, s, 10);
       } else if (fifo8_status(&mousefifo) != 0) {
         /** マウス入力が存在 */
         i = fifo8_get(&mousefifo);
@@ -145,7 +141,8 @@ void HariMain(void) {
           }
           boxfill8(buf_back, binfo->scrnx, COL8_008484, 32, 16, 32 + 15 * 8 - 1,
                    31);
-          putfonts8_asc(buf_back, binfo->scrnx, 32, 16, COL8_FFFFFF, s);
+          putfonts8_asc_sht(sht_back, 32, 16, COL8_FFFFFF, COL8_008484, s, 10);
+        } else if (fifo8_status(&mousefifo) != 0) {
 
           // sheet_refresh(sht_back, 32, 16, 32 + 15 * 8, 32);
           /* マウスカーソルの移動 */
@@ -164,22 +161,19 @@ void HariMain(void) {
             my = binfo->scrny - 1;
           }
           sprintf(s, "(%3d, %3d)", mx, my);
-          boxfill8(buf_back, binfo->scrnx, COL8_008484, 0, 0, 79,
-                   15); /* 座標消す */
-          putfonts8_asc(buf_back, binfo->scrnx, 0, 0, COL8_FFFFFF,
-                        s);               /* 座標書く */
+          putfonts8_asc_sht(sht_back, 0, 0, COL8_FFFFFF, COL8_008484, s, 10);
           sheet_slide(sht_mouse, mx, my); /* sheet_refreshを含む */
         }
       } else if (fifo8_status(&timerfifo) != 0) {
         i = fifo8_get(&timerfifo); /* とりあえず読み込む（からにするために） */
         io_sti();
-        putfonts8_asc(buf_back, binfo->scrnx, 0, 64, COL8_FFFFFF, "10[sec]");
-        sheet_refresh(sht_back, 0, 64, 56, 80);
+        putfonts8_asc_sht(sht_back, 0, 64, COL8_FFFFFF, COL8_008484, "10 [sec]",
+                          10);
       } else if (fifo8_status(&timerfifo2) != 0) {
         i = fifo8_get(&timerfifo2); /* とりあえず読み込む（からにするために） */
         io_sti();
-        putfonts8_asc(buf_back, binfo->scrnx, 0, 80, COL8_FFFFFF, "3[sec]");
-        sheet_refresh(sht_back, 0, 80, 48, 96);
+        putfonts8_asc_sht(sht_back, 0, 80, COL8_FFFFFF, COL8_008484, "3 [sec]",
+                          10);
       } else if (fifo8_status(&timerfifo3) != 0) {
         i = fifo8_get(&timerfifo3);
         io_sti();
