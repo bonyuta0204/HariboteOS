@@ -3,6 +3,9 @@
 #define PIT_CTRL 0x0043
 #define PIT_CNT0 0x0040
 
+#define TIMER_FLAG_ALLOC 1
+#define TIMER_FLAG_USING 2
+
 struct TIMERCTL timerctl;
 struct FIFO8 timerfifo;
 
@@ -11,7 +14,37 @@ void init_pit(void) {
   io_out8(PIT_CNT0, 0x9c);
   io_out8(PIT_CNT0, 0x2e);
   timerctl.count = 0;
-  timerctl.timeout = 0;
+
+  for (int i = 0; i < MAX_TIMER; i++) {
+    timerctl.timer[i].flags = 0; /** 未使用 */
+  };
+  return;
+}
+
+struct TIMER *timer_alloc(void) {
+  for (int i = 0; i < MAX_TIMER; i++) {
+    if (timerctl.timer[i].flags == 0) {
+      timerctl.timer[i].flags = TIMER_FLAG_ALLOC;
+      return &timerctl.timer[i];
+    }
+  }
+  return 0;
+}
+
+void timer_free(struct TIMER *timer) {
+  timer->flags = 0;
+  return;
+}
+
+void timer_init(struct TIMER *timer, struct FIFO8 *fifo, unsigned char data) {
+  timer->fifo = fifo;
+  timer->data = data;
+  return;
+}
+
+void timer_settime(struct TIMER *timer, unsigned int timeout) {
+  timer->timeout = timeout;
+  timer->flags = TIMER_FLAG_USING;
   return;
 }
 
@@ -20,24 +53,18 @@ void inthandler20(int *esp) {
   io_out8(PIC0_OCW2, 0x60); /* IRQ-00受付完了をPICに通知 */
   timerctl.count++;
 
-  if (timerctl.timeout > 0) {
-    timerctl.timeout--;
-    if (timerctl.timeout == 0) {
-      fifo8_put(timerctl.fifo, timerctl.data);
+  for (int i = 0; i < MAX_TIMER; i++) {
+    struct TIMER *timer = &timerctl.timer[i];
+    if (timer->flags == TIMER_FLAG_USING) {
+      timer->timeout--;
+
+      /** タイマーが終了 */
+      if (timer->timeout == 0) {
+        timer->flags = TIMER_FLAG_ALLOC;
+        fifo8_put(timer->fifo, timer->data);
+      }
     }
   }
 
-  return;
-}
-
-void settimer(unsigned int timeout, struct FIFO8 *fifo, unsigned char data) {
-  int eflags;
-
-  eflags = io_load_eflags();
-  io_cli();
-  timerctl.timeout = timeout;
-  timerctl.fifo = fifo;
-  timerctl.data = data;
-  io_store_eflags(eflags);
   return;
 }
