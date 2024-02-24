@@ -14,6 +14,7 @@ void init_pit(void) {
   io_out8(PIT_CNT0, 0x9c);
   io_out8(PIT_CNT0, 0x2e);
   timerctl.count = 0;
+  timerctl.next = 0xffffffff;
 
   for (int i = 0; i < MAX_TIMER; i++) {
     timerctl.timer[i].flags = 0; /** 未使用 */
@@ -43,8 +44,13 @@ void timer_init(struct TIMER *timer, struct FIFO8 *fifo, unsigned char data) {
 }
 
 void timer_settime(struct TIMER *timer, unsigned int timeout) {
-  timer->timeout = timeout;
+  timer->timeout = timeout + timerctl.count;
   timer->flags = TIMER_FLAG_USING;
+
+  if (timerctl.next > timer->timeout) {
+    /** 次回の更新 */
+    timerctl.next = timer->timeout;
+  }
   return;
 }
 
@@ -53,15 +59,24 @@ void inthandler20(int *esp) {
   io_out8(PIC0_OCW2, 0x60); /* IRQ-00受付完了をPICに通知 */
   timerctl.count++;
 
+  if (timerctl.next > timerctl.count) {
+    return;
+  }
+
+  timerctl.next = 0xffffffff;
+
   for (int i = 0; i < MAX_TIMER; i++) {
     struct TIMER *timer = &timerctl.timer[i];
     if (timer->flags == TIMER_FLAG_USING) {
-      timer->timeout--;
 
       /** タイマーが終了 */
-      if (timer->timeout == 0) {
+      if (timer->timeout <= timerctl.count) {
         timer->flags = TIMER_FLAG_ALLOC;
         fifo8_put(timer->fifo, timer->data);
+      } else {
+        if (timerctl.next > timer->timeout) {
+          timerctl.next = timer->timeout;
+        }
       }
     }
   }
