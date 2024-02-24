@@ -9,23 +9,32 @@ CYLS	EQU		10				; どこまで読み込むか
 
 		JMP		entry
 		DB		0x90
-		DB		"HARIBOTE"		; ブートセクタの名前を自由に書いてよい（8バイト）
-		DW		512				; 1セクタの大きさ（512にしなければいけない）
-		DB		1				; クラスタの大きさ（1セクタにしなければいけない）
-		DW		1				; FATがどこから始まるか（普通は1セクタ目からにする）
-		DB		2				; FATの個数（2にしなければいけない）
-		DW		224				; ルートディレクトリ領域の大きさ（普通は224エントリにする）
-		DW		2880			; このドライブの大きさ（2880セクタにしなければいけない）
-		DB		0xf0			; メディアのタイプ（0xf0にしなければいけない）
-		DW		9				; FAT領域の長さ（9セクタにしなければいけない）
-		DW		18				; 1トラックにいくつのセクタがあるか（18にしなければいけない）
-		DW		2				; ヘッドの数（2にしなければいけない）
-		DD		0				; パーティションを使ってないのでここは必ず0
-		DD		2880			; このドライブ大きさをもう一度書く
-		DB		0,0,0x29		; よくわからないけどこの値にしておくといいらしい
-		DD		0xffffffff		; たぶんボリュームシリアル番号
-		DB		"HARIBOTEOS "	; ディスクの名前（11バイト）
-		DB		"FAT12   "		; フォーマットの名前（8バイト）
+		DB		"HARIBOTE"		;BS_OEMName ブートセクタの名前を自由に書いてよい（8バイト）
+		DW		512				; BPB_BytsPerSec 1セクタの大きさ（512にしなければいけない）
+		DB		1		  		; BPB_SecPerClus クラスタの大きさ（1セクタにしなければいけない）
+		DW		32				; BPB_RsvdSecCnt FATがどこから始まるか（普通は1セクタ目からにする）
+		DB		2				  ; BPB_NumFATs FATの個数（2にしなければいけない）
+		DW		0 				; BPB_RootEntCnt ルートディレクトリ領域の大きさ（普通は224エントリにする）
+		DW		0	    		; BPB_TotSec16 このドライブの大きさ（2880セクタにしなければいけない）
+		DB		0xf0			; BPB_Media メディアのタイプ（0xf0にしなければいけない）
+		DW		0				  ; BPB_FATSz16 FAT領域の長さ（9セクタにしなければいけない）
+		DW		18				; BPB_SecPerTrk 1トラックにいくつのセクタがあるか（18にしなければいけない）
+		DW		2				  ; BPB_NumHeads ヘッドの数（2にしなければいけない）
+		DD		0				  ; BPB_HiddSec パーティションを使ってないのでここは必ず0
+		DD		2880			; BPB_TotSec32 このドライブ大きさをもう一度書く
+    DD    512       ; BPB_FATSz32
+    DW    0         ; BPB_ExtFlags
+    DW    0         ; BPB_FSVer
+    DD    2         ; BPB_RootClus
+    DW    1         ; BPB_FSInfo
+    DW    6         ; BPB_BkBootSec
+    TIMES	12 DB 0		; BPB_Reserved
+    DB    1         ; BS_DrvNum
+    DB    1         ; BS_Reserved1
+    DB    1         ; BS_BootSig
+    DD    1         ; BS_VolID
+    DB    "AAAAAAAAAAA" ; BS_VolLab
+    DB    "FAT32   "; BS_FilSysType
 		;RESB	18				; とりあえず18バイトあけておく
 		TIMES	18 DB 0		; NASMでは警告が出るので修正
 
