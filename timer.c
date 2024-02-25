@@ -7,7 +7,7 @@
 #define TIMER_FLAG_USING 2
 
 struct TIMERCTL timerctl;
-struct FIFO8 timerfifo;
+struct FIFO32 timerfifo;
 
 void init_pit(void) {
   io_out8(PIT_CTRL, 0x34);
@@ -37,7 +37,7 @@ void timer_free(struct TIMER *timer) {
   return;
 }
 
-void timer_init(struct TIMER *timer, struct FIFO8 *fifo, unsigned char data) {
+void timer_init(struct TIMER *timer, struct FIFO32 *fifo, unsigned char data) {
   timer->fifo = fifo;
   timer->data = data;
   return;
@@ -72,7 +72,7 @@ void inthandler20(int *esp) {
       /** タイマーが終了 */
       if (timer->timeout <= timerctl.count) {
         timer->flags = TIMER_FLAG_ALLOC;
-        fifo8_put(timer->fifo, timer->data);
+        fifo32_put(timer->fifo, timer->data);
       } else {
         if (timerctl.next > timer->timeout) {
           timerctl.next = timer->timeout;

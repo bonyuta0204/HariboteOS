@@ -19,7 +19,6 @@
 #define COL8_008484 14
 #define COL8_848484 15
 
-
 #define EFLAGS_AC_BIT 0x00040000
 #define CR0_CACHE_DISABLE 0x60000000
 #define MEMMAN_FREES 4090 /* これで約32KB */
@@ -50,6 +49,11 @@ struct GATE_DESCRIPTOR {
 
 struct FIFO8 {
   unsigned char *buf;
+  int p, q, size, free, flags;
+};
+
+struct FIFO32 {
+  int *buf;
   int p, q, size, free, flags;
 };
 
@@ -89,7 +93,7 @@ struct SHTCTL {
 
 struct TIMER {
   unsigned int timeout, flags;
-  struct FIFO8 *fifo;
+  struct FIFO32 *fifo;
   unsigned char data;
 };
 
@@ -126,7 +130,6 @@ void asm_inthandler21();
 void asm_inthandler27();
 void asm_inthandler2c();
 unsigned int memtest_sub(unsigned int start, unsigned int end);
-
 
 /* graphic.c */
 void init_palette(void);
@@ -177,13 +180,17 @@ void fifo8_init(struct FIFO8 *fifo, int size, unsigned char *buf);
 int fifo8_put(struct FIFO8 *fifo, unsigned char data);
 int fifo8_get(struct FIFO8 *fifo);
 int fifo8_status(struct FIFO8 *fifo);
+void fifo32_init(struct FIFO32 *fifo, int size, int *buf);
+int fifo32_put(struct FIFO32 *fifo, int data);
+int fifo32_get(struct FIFO32 *fifo);
+int fifo32_status(struct FIFO32 *fifo);
 
 /* mysprintf.c */
 void sprintf(char *str, char *fmt, ...);
 
 /** keyboard.c */
 void wait_KBC_sendready(void);
-extern struct FIFO8 keyfifo;
+extern struct FIFO32 keyfifo;
 
 #define PORT_KEYDAT 0x0060
 #define PORT_KEYSTA 0x0064
@@ -194,14 +201,13 @@ extern struct FIFO8 keyfifo;
 
 /** mouse.c */
 
-extern struct FIFO8 mousefifo;
+extern struct FIFO32 mousefifo;
 
 void enable_mouse(struct MOUSE_DEC *mdec);
 void init_keyboard(void);
 int mouse_decode(struct MOUSE_DEC *mdec, unsigned char data);
 
 /** memory.c */
-
 
 unsigned int memtest(unsigned int start, unsigned int end);
 void memman_init(struct MEMMAN *man);
@@ -212,7 +218,6 @@ unsigned int memman_alloc_4k(struct MEMMAN *man, unsigned int size);
 int memman_free_4k(struct MEMMAN *man, unsigned int addr, unsigned int size);
 
 /* sheet.c */
-
 
 struct SHTCTL *shtctl_init(struct MEMMAN *memman, unsigned char *vram,
                            int xsize, int ysize);
@@ -237,5 +242,5 @@ extern struct TIMERCTL timerctl;
 void init_pit(void);
 struct TIMER *timer_alloc(void);
 void timer_free(struct TIMER *timer);
-void timer_init(struct TIMER *timer, struct FIFO8 *fifo, unsigned char data);
+void timer_init(struct TIMER *timer, struct FIFO32 *fifo, unsigned char data);
 void timer_settime(struct TIMER *timer, unsigned int timeout);

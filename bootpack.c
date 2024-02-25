@@ -7,8 +7,9 @@ void make_window8(unsigned char *buf, int xsize, int ysize, char *title);
 
 void HariMain(void) {
   struct BOOTINFO *binfo = (struct BOOTINFO *)ADR_BOOTINFO;
-  struct FIFO8 timerfifo;
-  char s[40], mcursor[256], keybuf[32], mousebuf[128], timerbuf[8];
+  struct FIFO32 timerfifo;
+  char s[40], mcursor[256];
+  int keybuf[32], mousebuf[128], timerbuf[8];
 
   struct TIMER *timer, *timer2, *timer3;
 
@@ -29,8 +30,8 @@ void HariMain(void) {
   init_pit();
 
   /** Initialize keyword and mouse */
-  fifo8_init(&keyfifo, 32, keybuf);
-  fifo8_init(&mousefifo, 128, mousebuf);
+  fifo32_init(&keyfifo, 32, keybuf);
+  fifo32_init(&mousefifo, 128, mousebuf);
 
   /** Enable PIC interrupt */
   io_out8(PIC0_IMR, 0xf8); /* PITとPIC1とキーボードを許可(11111000) */
@@ -80,7 +81,7 @@ void HariMain(void) {
   putfonts8_asc_sht(sht_back, 0, 32, COL8_FFFFFF, COL8_008484, s, 30);
 
   /** Initialize Timer */
-  fifo8_init(&timerfifo, 8, timerbuf);
+  fifo32_init(&timerfifo, 8, timerbuf);
 
   timer = timer_alloc();
   timer_init(timer, &timerfifo, 10);
@@ -100,22 +101,22 @@ void HariMain(void) {
     putfonts8_asc_sht(sht_win, 40, 28, COL8_000000, COL8_C6C6C6, s, 10);
 
     io_cli();
-    if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo) +
-            fifo8_status(&timerfifo) ==
+    if (fifo32_status(&keyfifo) + fifo32_status(&mousefifo) +
+            fifo32_status(&timerfifo) ==
         0) {
       io_stihlt();
       // io_sti();
     } else {
-      if (fifo8_status(&keyfifo) != 0) {
+      if (fifo32_status(&keyfifo) != 0) {
         /** キーボード入力が存在 */
-        i = fifo8_get(&keyfifo);
+        i = fifo32_get(&keyfifo);
         io_sti();
         sprintf(s, "%d", i);
         putfonts8_asc_sht(sht_back, 0, 16, COL8_FFFFFF, COL8_008484, s, 10);
 
-      } else if (fifo8_status(&mousefifo) != 0) {
+      } else if (fifo32_status(&mousefifo) != 0) {
         /** マウス入力が存在 */
-        i = fifo8_get(&mousefifo);
+        i = fifo32_get(&mousefifo);
         io_sti();
 
         if (mouse_decode(&mdec, i) != 0) {
@@ -152,8 +153,8 @@ void HariMain(void) {
           putfonts8_asc_sht(sht_back, 0, 0, COL8_FFFFFF, COL8_008484, s, 10);
           sheet_slide(sht_mouse, mx, my); /* sheet_refreshを含む */
         }
-      } else if (fifo8_status(&timerfifo) != 0) {
-        i = fifo8_get(&timerfifo); /* とりあえず読み込む（からにするために） */
+      } else if (fifo32_status(&timerfifo) != 0) {
+        i = fifo32_get(&timerfifo); /* とりあえず読み込む（からにするために） */
         io_sti();
 
         switch (i) {
