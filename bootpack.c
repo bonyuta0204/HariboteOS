@@ -73,14 +73,11 @@ void HariMain(void) {
   sheet_updown(sht_win, 1);
   sheet_updown(sht_mouse, 2);
 
-  sprintf(s, "(%d, %d)", mx, my);
-  putfonts8_asc_sht(sht_back, 0, 0, COL8_FFFFFF, COL8_008484, s, 10);
+  /** Print Memory State */
+  sprintf(s, "memory %dMB   free : %dMB", memtotal / (1024 * 1024),
+          memman_total(memman) / (1024 * 1024));
 
-  i = memtest(0x00400000, 0xbfffffff) / (1024 * 1024);
-  sprintf(s, "memory %dKB   free : %dKB", memtotal / (1024),
-          memman_total(memman) / 1024);
-  putfonts8_asc_sht(sht_back, 0, 16, COL8_FFFFFF, COL8_008484, s, 10);
-  sheet_refresh(sht_back, 0, 0, sht_back->bxsize, sht_back->bysize);
+  putfonts8_asc_sht(sht_back, 0, 32, COL8_FFFFFF, COL8_008484, s, 30);
 
   /** Initialize Timer */
   fifo8_init(&timerfifo, 8, timerbuf);
@@ -88,8 +85,6 @@ void HariMain(void) {
   timer = timer_alloc();
   timer_init(timer, &timerfifo, 10);
   timer_settime(timer, 1000);
-
-  putfonts8_asc_sht(sht_back, 0, 32, COL8_FFFFFF, COL8_008484, s, 10);
 
   timer2 = timer_alloc();
   timer_init(timer2, &timerfifo, 3);
@@ -117,6 +112,7 @@ void HariMain(void) {
         io_sti();
         sprintf(s, "%d", i);
         putfonts8_asc_sht(sht_back, 0, 16, COL8_FFFFFF, COL8_008484, s, 10);
+
       } else if (fifo8_status(&mousefifo) != 0) {
         /** マウス入力が存在 */
         i = fifo8_get(&mousefifo);
@@ -134,10 +130,7 @@ void HariMain(void) {
           if ((mdec.btn & 0x04) != 0) {
             s[2] = 'C';
           }
-          boxfill8(buf_back, binfo->scrnx, COL8_008484, 32, 16, 32 + 15 * 8 - 1,
-                   31);
           putfonts8_asc_sht(sht_back, 32, 16, COL8_FFFFFF, COL8_008484, s, 10);
-        } else if (fifo8_status(&mousefifo) != 0) {
 
           // sheet_refresh(sht_back, 32, 16, 32 + 15 * 8, 32);
           /* マウスカーソルの移動 */
@@ -155,7 +148,7 @@ void HariMain(void) {
           if (my > binfo->scrny - 1) {
             my = binfo->scrny - 1;
           }
-          sprintf(s, "(%3d, %3d)", mx, my);
+          sprintf(s, "(%d, %d)", mx, my);
           putfonts8_asc_sht(sht_back, 0, 0, COL8_FFFFFF, COL8_008484, s, 10);
           sheet_slide(sht_mouse, mx, my); /* sheet_refreshを含む */
         }
