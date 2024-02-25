@@ -190,7 +190,6 @@ void sprintf(char *str, char *fmt, ...);
 
 /** keyboard.c */
 void wait_KBC_sendready(void);
-extern struct FIFO32 keyfifo;
 
 #define PORT_KEYDAT 0x0060
 #define PORT_KEYSTA 0x0064
@@ -201,10 +200,8 @@ extern struct FIFO32 keyfifo;
 
 /** mouse.c */
 
-extern struct FIFO32 mousefifo;
-
-void enable_mouse(struct MOUSE_DEC *mdec);
-void init_keyboard(void);
+void enable_mouse(struct FIFO32 *fifo,int data0,struct MOUSE_DEC *mdec);
+void init_keyboard(struct FIFO32 *fifo, int data0);
 int mouse_decode(struct MOUSE_DEC *mdec, unsigned char data);
 
 /** memory.c */

@@ -7,9 +7,9 @@ void make_window8(unsigned char *buf, int xsize, int ysize, char *title);
 
 void HariMain(void) {
   struct BOOTINFO *binfo = (struct BOOTINFO *)ADR_BOOTINFO;
-  struct FIFO32 timerfifo;
   char s[40], mcursor[256];
-  int keybuf[32], mousebuf[128], timerbuf[8];
+  int fifobuf[8];
+  struct FIFO32 fifo;
 
   struct TIMER *timer, *timer2, *timer3;
 
@@ -30,15 +30,14 @@ void HariMain(void) {
   init_pit();
 
   /** Initialize keyword and mouse */
-  fifo32_init(&keyfifo, 32, keybuf);
-  fifo32_init(&mousefifo, 128, mousebuf);
+  fifo32_init(&fifo, 32, fifobuf);
 
   /** Enable PIC interrupt */
   io_out8(PIC0_IMR, 0xf8); /* PITとPIC1とキーボードを許可(11111000) */
   io_out8(PIC1_IMR, 0xef); /* マウスを許可(11101111) */
 
-  init_keyboard();
-  enable_mouse(&mdec);
+  init_keyboard(&fifo, 256);
+  enable_mouse(&fifo, 512, &mdec);
 
   /** Initialize Memory Map */
   memtotal = memtest(0x00400000, 0xbfffffff);
@@ -81,18 +80,17 @@ void HariMain(void) {
   putfonts8_asc_sht(sht_back, 0, 32, COL8_FFFFFF, COL8_008484, s, 30);
 
   /** Initialize Timer */
-  fifo32_init(&timerfifo, 8, timerbuf);
 
   timer = timer_alloc();
-  timer_init(timer, &timerfifo, 10);
+  timer_init(timer, &fifo, 10);
   timer_settime(timer, 1000);
 
   timer2 = timer_alloc();
-  timer_init(timer2, &timerfifo, 3);
+  timer_init(timer2, &fifo, 3);
   timer_settime(timer2, 300);
 
   timer3 = timer_alloc();
-  timer_init(timer3, &timerfifo, 1);
+  timer_init(timer3, &fifo, 1);
   timer_settime(timer3, 50);
 
   for (;;) {
@@ -101,25 +99,21 @@ void HariMain(void) {
     putfonts8_asc_sht(sht_win, 40, 28, COL8_000000, COL8_C6C6C6, s, 10);
 
     io_cli();
-    if (fifo32_status(&keyfifo) + fifo32_status(&mousefifo) +
-            fifo32_status(&timerfifo) ==
-        0) {
+    if (fifo32_status(&fifo) == 0) {
       io_stihlt();
       // io_sti();
     } else {
-      if (fifo32_status(&keyfifo) != 0) {
+      i = fifo32_get(&fifo);
+      io_sti();
+      if (i >= 256 && i < 512) {
         /** キーボード入力が存在 */
-        i = fifo32_get(&keyfifo);
-        io_sti();
-        sprintf(s, "%d", i);
+        sprintf(s, "%d", i - 256);
         putfonts8_asc_sht(sht_back, 0, 16, COL8_FFFFFF, COL8_008484, s, 10);
 
-      } else if (fifo32_status(&mousefifo) != 0) {
+      } else if (i >= 512) {
         /** マウス入力が存在 */
-        i = fifo32_get(&mousefifo);
-        io_sti();
 
-        if (mouse_decode(&mdec, i) != 0) {
+        if (mouse_decode(&mdec, i - 512) != 0) {
           /* データが3バイト揃ったので表示 */
           sprintf(s, "[lcr %d %d]", mdec.x, mdec.y);
           if ((mdec.btn & 0x01) != 0) {
@@ -153,9 +147,7 @@ void HariMain(void) {
           putfonts8_asc_sht(sht_back, 0, 0, COL8_FFFFFF, COL8_008484, s, 10);
           sheet_slide(sht_mouse, mx, my); /* sheet_refreshを含む */
         }
-      } else if (fifo32_status(&timerfifo) != 0) {
-        i = fifo32_get(&timerfifo); /* とりあえず読み込む（からにするために） */
-        io_sti();
+      } else {
 
         switch (i) {
         case 10:
@@ -167,10 +159,10 @@ void HariMain(void) {
                             "3 [sec]", 10);
         default:
           if (i != 0) {
-            timer_init(timer3, &timerfifo, 0); /* 次は0を */
+            timer_init(timer3, &fifo, 0); /* 次は0を */
             boxfill8(buf_back, binfo->scrnx, COL8_FFFFFF, 8, 96, 15, 111);
           } else {
-            timer_init(timer3, &timerfifo, 1); /* 次は1を */
+            timer_init(timer3, &fifo, 1); /* 次は1を */
             boxfill8(buf_back, binfo->scrnx, COL8_008484, 8, 96, 15, 111);
           }
           timer_settime(timer3, 50);
