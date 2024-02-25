@@ -1,4 +1,33 @@
-/* asmhead.asm */
+/** Boot info */
+#define ADR_BOOTINFO 0x00000ff0
+
+/** Color Definition */
+#define COL8_000000 0
+#define COL8_FF0000 1
+#define COL8_00FF00 2
+#define COL8_FFFF00 3
+#define COL8_0000FF 4
+#define COL8_FF00FF 5
+#define COL8_00FFFF 6
+#define COL8_FFFFFF 7
+#define COL8_C6C6C6 8
+#define COL8_840000 9
+#define COL8_008400 10
+#define COL8_848400 11
+#define COL8_000084 12
+#define COL8_840084 13
+#define COL8_008484 14
+#define COL8_848484 15
+
+
+#define EFLAGS_AC_BIT 0x00040000
+#define CR0_CACHE_DISABLE 0x60000000
+#define MEMMAN_FREES 4090 /* これで約32KB */
+#define MEMMAN_ADDR 0x003c0000
+
+#define MAX_SHEETS 256
+
+/** Boot information set by bootloader */
 struct BOOTINFO { /* 0x0ff0-0x0fff */
   char cyls; /* ブートセクタはどこまでディスクを読んだのか */
   char leds;  /* ブート時のキーボードのLEDの状態 */
@@ -7,7 +36,67 @@ struct BOOTINFO { /* 0x0ff0-0x0fff */
   short scrnx, scrny; /* 画面解像度 */
   char *vram;
 };
-#define ADR_BOOTINFO 0x00000ff0
+
+struct SEGMENT_DESCRIPTOR {
+  short limit_low, base_low;
+  char base_mid, access_right;
+  char limit_high, base_high;
+};
+struct GATE_DESCRIPTOR {
+  short offset_low, selector;
+  char dw_count, access_right;
+  short offset_high;
+};
+
+struct FIFO8 {
+  unsigned char *buf;
+  int p, q, size, free, flags;
+};
+
+struct KEYBUF {
+  unsigned char data[32];
+  int next_r, next_w, len;
+};
+
+struct MOUSE_DEC {
+  unsigned char buf[3], phase;
+  int x, y, btn;
+};
+
+struct FREEINFO { /* あき情報 */
+  unsigned int addr, size;
+};
+
+struct MEMMAN { /* メモリ管理 */
+  int frees, maxfrees, lostsize, losts;
+  struct FREEINFO free[MEMMAN_FREES];
+};
+
+struct SHEET {
+  unsigned char *buf;
+  int bxsize, bysize, vx0, vy0, col_inv, height, flags;
+  struct SHTCTL *ctl;
+};
+
+struct SHTCTL {
+  unsigned char *vram, *map;
+  int xsize, ysize, top;
+  struct SHEET *sheets[MAX_SHEETS];
+  struct SHEET sheets0[MAX_SHEETS];
+};
+
+#define MAX_TIMER 500
+
+struct TIMER {
+  unsigned int timeout, flags;
+  struct FIFO8 *fifo;
+  unsigned char data;
+};
+
+struct TIMERCTL {
+  unsigned int count, next;
+  struct TIMER timer[MAX_TIMER];
+};
 
 /* naskfunc.asm */
 void io_hlt(void);
@@ -38,11 +127,6 @@ void asm_inthandler27();
 void asm_inthandler2c();
 unsigned int memtest_sub(unsigned int start, unsigned int end);
 
-struct SHEET {
-  unsigned char *buf;
-  int bxsize, bysize, vx0, vy0, col_inv, height, flags;
-  struct SHTCTL *ctl;
-};
 
 /* graphic.c */
 void init_palette(void);
@@ -58,34 +142,7 @@ void putblock8_8(char *vram, int vxsize, int pxsize, int pysize, int px0,
                  int py0, char *buf, int bxsize);
 void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c, int b, char *s,
                        int l);
-#define COL8_000000 0
-#define COL8_FF0000 1
-#define COL8_00FF00 2
-#define COL8_FFFF00 3
-#define COL8_0000FF 4
-#define COL8_FF00FF 5
-#define COL8_00FFFF 6
-#define COL8_FFFFFF 7
-#define COL8_C6C6C6 8
-#define COL8_840000 9
-#define COL8_008400 10
-#define COL8_848400 11
-#define COL8_000084 12
-#define COL8_840084 13
-#define COL8_008484 14
-#define COL8_848484 15
-
 /* dsctbl.c */
-struct SEGMENT_DESCRIPTOR {
-  short limit_low, base_low;
-  char base_mid, access_right;
-  char limit_high, base_high;
-};
-struct GATE_DESCRIPTOR {
-  short offset_low, selector;
-  char dw_count, access_right;
-  short offset_high;
-};
 void init_gdtidt(void);
 void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base,
                   int ar);
@@ -101,10 +158,6 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 #define AR_INTGATE32 0x008e
 
 /* int.c */
-struct KEYBUF {
-  unsigned char data[32];
-  int next_r, next_w, len;
-};
 void init_pic(void);
 #define PIC0_ICW1 0x0020
 #define PIC0_OCW2 0x0020
@@ -120,10 +173,6 @@ void init_pic(void);
 #define PIC1_ICW4 0x00a1
 
 /** fifo.c */
-struct FIFO8 {
-  unsigned char *buf;
-  int p, q, size, free, flags;
-};
 void fifo8_init(struct FIFO8 *fifo, int size, unsigned char *buf);
 int fifo8_put(struct FIFO8 *fifo, unsigned char data);
 int fifo8_get(struct FIFO8 *fifo);
@@ -144,10 +193,6 @@ extern struct FIFO8 keyfifo;
 #define KBC_MODE 0x47
 
 /** mouse.c */
-struct MOUSE_DEC {
-  unsigned char buf[3], phase;
-  int x, y, btn;
-};
 
 extern struct FIFO8 mousefifo;
 
@@ -157,19 +202,6 @@ int mouse_decode(struct MOUSE_DEC *mdec, unsigned char data);
 
 /** memory.c */
 
-#define EFLAGS_AC_BIT 0x00040000
-#define CR0_CACHE_DISABLE 0x60000000
-#define MEMMAN_FREES 4090 /* これで約32KB */
-#define MEMMAN_ADDR 0x003c0000
-
-struct FREEINFO { /* あき情報 */
-  unsigned int addr, size;
-};
-
-struct MEMMAN { /* メモリ管理 */
-  int frees, maxfrees, lostsize, losts;
-  struct FREEINFO free[MEMMAN_FREES];
-};
 
 unsigned int memtest(unsigned int start, unsigned int end);
 void memman_init(struct MEMMAN *man);
@@ -180,14 +212,7 @@ unsigned int memman_alloc_4k(struct MEMMAN *man, unsigned int size);
 int memman_free_4k(struct MEMMAN *man, unsigned int addr, unsigned int size);
 
 /* sheet.c */
-#define MAX_SHEETS 256
 
-struct SHTCTL {
-  unsigned char *vram, *map;
-  int xsize, ysize, top;
-  struct SHEET *sheets[MAX_SHEETS];
-  struct SHEET sheets0[MAX_SHEETS];
-};
 
 struct SHTCTL *shtctl_init(struct MEMMAN *memman, unsigned char *vram,
                            int xsize, int ysize);
@@ -207,18 +232,6 @@ void sheet_refreshmap(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1,
 void sheet_free(struct SHEET *sht);
 
 /** timer.c */
-#define MAX_TIMER 500
-
-struct TIMER {
-  unsigned int timeout, flags;
-  struct FIFO8 *fifo;
-  unsigned char data;
-};
-
-struct TIMERCTL {
-  unsigned int count, next;
-  struct TIMER timer[MAX_TIMER];
-};
 extern struct TIMERCTL timerctl;
 
 void init_pit(void);
