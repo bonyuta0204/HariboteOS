@@ -38,7 +38,7 @@ img:
 # Run the image on QEMU
 run:
 	make img
-	qemu-system-i386 -drive file=haribote.img,format=raw,if=floppy
+	qemu-system-i386 -drive file=haribote.img,format=raw,if=floppy -vga std
 
 # Clean up
 clean:
