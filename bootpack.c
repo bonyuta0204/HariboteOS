@@ -54,11 +54,11 @@ void HariMain(void) {
 
   buf_back =
       (unsigned char *)memman_alloc_4k(memman, binfo->scrnx * binfo->scrny);
-  buf_win = (unsigned char *)memman_alloc_4k(memman, 160 * 68);
+  buf_win = (unsigned char *)memman_alloc_4k(memman, 160 * 52);
 
   sheet_setbuf(sht_back, buf_back, binfo->scrnx, binfo->scrny, -1);
   sheet_setbuf(sht_mouse, buf_mouse, 16, 16, 99);
-  sheet_setbuf(sht_win, buf_win, 160, 68, -1);
+  sheet_setbuf(sht_win, buf_win, 160, 52, -1);
 
   init_screen8(buf_back, binfo->scrnx, binfo->scrny);
   init_mouse_cursor8(buf_mouse, 99);
